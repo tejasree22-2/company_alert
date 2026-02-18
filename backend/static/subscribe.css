@@ -1,0 +1,160 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  background: #f3f4f6;
+}
+
+/* TOPBAR */
+.topbar {
+  background: white;
+  padding: 16px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topbar h2 {
+  font-size: 20px;
+}
+
+.nav button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-left: 10px;
+}
+
+#homeBtn {
+  background: #2563eb;
+  color: white;
+}
+
+#logoutBtn {
+  background: #ef4444;
+  color: white;
+}
+
+/* MAIN */
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0px 6px 18px rgba(0,0,0,0.08);
+}
+
+.card h1 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.card p {
+  color: #555;
+  margin-bottom: 16px;
+}
+
+label {
+  font-weight: 700;
+  margin-top: 10px;
+  display: block;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  outline: none;
+}
+
+#subscribeBtn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #16a34a;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+#subscribeBtn:hover {
+  background: #15803d;
+}
+
+#subMsg {
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+/* SUBS LIST */
+.sub-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.sub-item h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.sub-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sub-actions button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-pause {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-unpause {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-edit {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-delete {
+  background: #ef4444;
+  color: white;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
