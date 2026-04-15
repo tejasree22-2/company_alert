@@ -1,17 +1,31 @@
-const email = localStorage.getItem("user_email");
-
-if (!email) {
-  alert("Please login first!");
-  window.location.href = "/login-page";
+async function checkAuth() {
+  try {
+    const res = await fetch("/check-auth");
+    if (res.status !== 200) {
+      window.location.href = "/login-page";
+      return null;
+    }
+    return await res.json();
+  } catch {
+    window.location.href = "/login-page";
+    return null;
+  }
 }
+
+let userData = null;
+
+(async () => {
+  userData = await checkAuth();
+  if (!userData) return;
+})();
 
 document.getElementById("homeBtn").addEventListener("click", () => {
   window.location.href = "/";
 });
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("user_email");
-  window.location.href = "/";
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await fetch("/logout");
+  window.location.href = "/login-page";
 });
 
 const subscribeBtn = document.getElementById("subscribeBtn");
@@ -20,10 +34,14 @@ const listDiv = document.getElementById("subscriptionsList");
 
 async function loadSubscriptions() {
   const res = await fetch("/get-subscriptions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
+    method: "GET",
+    credentials: "include"
   });
+
+  if (res.status === 401) {
+    window.location.href = "/login-page";
+    return;
+  }
 
   const data = await res.json();
 
@@ -71,7 +89,8 @@ subscribeBtn.addEventListener("click", async () => {
   const res = await fetch("/subscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, city, category })
+    body: JSON.stringify({ city, category }),
+    credentials: "include"
   });
 
   const data = await res.json();
@@ -88,7 +107,8 @@ async function pauseSub(subscription_id, pause) {
   const res = await fetch("/pause-subscription", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, subscription_id, pause })
+    body: JSON.stringify({ subscription_id, pause }),
+    credentials: "include"
   });
 
   await res.json();
@@ -101,7 +121,8 @@ async function deleteSub(subscription_id) {
   const res = await fetch("/unsubscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, subscription_id })
+    body: JSON.stringify({ subscription_id }),
+    credentials: "include"
   });
 
   await res.json();
@@ -119,11 +140,11 @@ async function editSub(subscription_id, oldCity, oldCategory) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email,
       subscription_id,
       city: newCity,
       category: newCategory
-    })
+    }),
+    credentials: "include"
   });
 
   await res.json();

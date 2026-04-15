@@ -6,13 +6,16 @@ document.getElementById("footerSubscribeBtn").addEventListener("click", () => {
   window.location.href = "/login-page";
 });
 
-document.getElementById("mySubsBtn").addEventListener("click", () => {
-  const email = localStorage.getItem("user_email");
-  if (!email) {
-    alert("Please login first to view your subscriptions.");
-    window.location.href = "/login-page";
-  } else {
+document.getElementById("mySubsBtn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("/check-auth");
+    if (res.status !== 200) {
+      window.location.href = "/login-page";
+      return;
+    }
     window.location.href = "/subscribe-page";
+  } catch {
+    window.location.href = "/login-page";
   }
 });
 

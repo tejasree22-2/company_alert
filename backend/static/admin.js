@@ -1,3 +1,37 @@
+async function checkAuth() {
+  try {
+    const res = await fetch("/check-auth");
+    if (res.status !== 200) {
+      window.location.href = "/login-page";
+      return null;
+    }
+    const data = await res.json();
+    if (data.role !== "admin") {
+      window.location.href = "/";
+      return null;
+    }
+    return data;
+  } catch {
+    window.location.href = "/login-page";
+    return null;
+  }
+}
+
+(async () => {
+  const user = await checkAuth();
+  if (!user) return;
+  console.log("Admin logged in:", user.email);
+})();
+
+document.getElementById("homeBtn").addEventListener("click", () => {
+  window.location.href = "/";
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await fetch("/logout");
+  window.location.href = "/login-page";
+});
+
 const companyForm = document.getElementById("companyForm");
 const msg = document.getElementById("msg");
 
@@ -19,7 +53,8 @@ companyForm.addEventListener("submit", async (e) => {
       city,
       category,
       opening_date
-    })
+    }),
+    credentials: "include"
   });
 
   const data = await res.json();

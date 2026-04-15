@@ -1,14 +1,12 @@
 import psycopg2
-    
-DB_CONFIG = {
-    "host": "localhost",
-    "database": "init_postgresql",
-    "user": "tejasree",
-    "password": "tejasree@22",
-    "port": "5432"
-}
-    
-conn = psycopg2.connect(**DB_CONFIG)
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+conn = psycopg2.connect(DATABASE_URL)
 cur = conn.cursor()
     
 # USERS TABLE
@@ -17,7 +15,8 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
-    password VARCHAR(200) NOT NULL
+    password VARCHAR(200) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user'
 );
 """)
     
