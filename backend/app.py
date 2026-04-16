@@ -432,55 +432,7 @@ Company Alert System
     except Exception as e:
         print("Error in add_company:", str(e), flush=True)
         return jsonify({"message": "Failed to add company", "error": str(e)}), 400
-
-@app.route("/mcp/subscriptions", methods=["GET"])
-def mcp_get_subscriptions():
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT id, city, category, is_paused
-        FROM subscriptions
-        ORDER BY id DESC
-    """)
-
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    return jsonify({
-        "subscriptions": [
-            {
-                "id": r[0],
-                "city": r[1],
-                "category": r[2],
-                "is_paused": r[3]
-            } for r in rows
-        ]
-    })
-
-@app.route("/mcp/add-company", methods=["POST"])
-def mcp_add_company():
-    data = request.json
-
-    company_name = data.get("company_name")
-    city = data.get("city")
-    category = data.get("category")
-    address = data.get("address", "Auto generated")
-
-    conn = get_conn()
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT INTO companies (company_name, address, city, category)
-        VALUES (%s, %s, %s, %s)
-    """, (company_name, address, city, category))
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    return jsonify({"message": "Company added successfully"})    
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
