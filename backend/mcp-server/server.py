@@ -1,9 +1,10 @@
 from fastmcp import FastMCP
 import requests
+import os
 
 mcp = FastMCP("company-alert-mcp")
 
-BASE_URL = "http://localhost:5000"
+BASE_URL = os.getenv("BACKEND_URL")
     
 # 🔐 Persistent session (stores cookies after login)
 session = requests.Session()
@@ -294,4 +295,8 @@ def find_users(city: str, category: str):
 # -------------------------------
 if __name__ == "__main__":
     print("🚀 MCP Server Running...", flush=True)
-    mcp.run()
+    mcp.run(
+        transport="sse",
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 10000))
+    )
