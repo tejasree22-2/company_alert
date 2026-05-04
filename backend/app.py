@@ -257,11 +257,12 @@ def get_subscriptions():
 @login_required
 def pause_subscription():
     data = request.json
-    sub_id = data.get("subscription_id")
+    city = data.get("city", "").strip()
+    category = data.get("category", "").strip()
     pause_value = data.get("pause")
 
-    if sub_id is None or pause_value is None:
-        return jsonify({"message": "subscription_id, pause required"}), 400
+    if not city or not category or pause_value is None:
+        return jsonify({"message": "city, category and pause required"}), 400
 
     conn = get_conn()
     cur = conn.cursor()
@@ -269,8 +270,10 @@ def pause_subscription():
     cur.execute("""
         UPDATE subscriptions
         SET is_paused=%s
-        WHERE id=%s AND user_email=%s
-    """, (pause_value, sub_id, current_user.email))
+        WHERE TRIM(LOWER(city))=TRIM(LOWER(%s))
+          AND TRIM(LOWER(category))=TRIM(LOWER(%s))
+          AND user_email=%s
+    """, (pause_value, city, category, current_user.email))
 
     conn.commit()
     rows_affected = cur.rowcount
@@ -320,18 +323,21 @@ def edit_subscription():
 @login_required
 def unsubscribe():
     data = request.json
-    sub_id = data.get("subscription_id")
+    city = data.get("city", "").strip()
+    category = data.get("category", "").strip()
 
-    if not sub_id:
-        return jsonify({"message": "subscription_id required"}), 400
+    if not city or not category:
+        return jsonify({"message": "city and category required"}), 400
 
     conn = get_conn()
     cur = conn.cursor()
 
     cur.execute("""
         DELETE FROM subscriptions
-        WHERE id=%s AND user_email=%s
-    """, (sub_id, current_user.email))
+        WHERE TRIM(LOWER(city))=TRIM(LOWER(%s))
+          AND TRIM(LOWER(category))=TRIM(LOWER(%s))
+          AND user_email=%s
+    """, (city, category, current_user.email))
 
     conn.commit()
     rows_affected = cur.rowcount
@@ -342,6 +348,181 @@ def unsubscribe():
         return jsonify({"message": "Subscription not found"}), 404
 
     return jsonify({"message": "Unsubscribed successfully"}), 200
+
+
+# ------------------ ADMIN: FILTER COMPANIES ------------------
+
+@app.route("/filter-companies", methods=["GET"])
+@login_required
+def filter_companies():
+    if current_user.role != "admin":
+        return jsonify({"message": "Access denied. Admin only."}), 403
+
+    city = request.args.get("city", "").strip()
+    category = request.args.get("category", "").strip()
+
+    if not city or not category:
+        return jsonify({"message": "city and category are required"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, company_name, address, city, category, opening_date
+        FROM companies
+        WHERE TRIM(LOWER(city)) = TRIM(LOWER(%s))
+          AND TRIM(LOWER(category)) = TRIM(LOWER(%s))
+        ORDER BY opening_date DESC
+    """, (city, category))
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    companies = [{"id": r[0], "company_name": r[1], "address": r[2], "city": r[3], "category": r[4], "opening_date": str(r[5])} for r in rows]
+    return jsonify({"companies": companies}), 200
+
+
+# ------------------ ADMIN: GET ALL SUBSCRIPTIONS ------------------
+
+@app.route("/get-all-subscriptions", methods=["GET"])
+@login_required
+def get_all_subscriptions():
+    if current_user.role != "admin":
+        return jsonify({"message": "Access denied. Admin only."}), 403
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT user_email, city, category, is_paused
+        FROM subscriptions
+        ORDER BY user_email, city
+    """)
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    subscriptions = [{"user_email": r[0], "city": r[1], "category": r[2], "is_paused": r[3]} for r in rows]
+    return jsonify({"subscriptions": subscriptions}), 200
+
+
+# ------------------ ADMIN: GET ALL USERS ------------------
+
+@app.route("/get-all-users", methods=["GET"])
+@login_required
+def get_all_users():
+    if current_user.role != "admin":
+        return jsonify({"message": "Access denied. Admin only."}), 403
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, name, email, role
+        FROM users
+        ORDER BY id
+    """)
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    users = [{"id": r[0], "name": r[1], "email": r[2], "role": r[3]} for r in rows]
+    return jsonify({"users": users}), 200
+
+
+# ------------------ ADMIN: GET ALL COMPANIES ------------------
+
+@app.route("/get-all-companies", methods=["GET"])
+@login_required
+def get_all_companies():
+    if current_user.role != "admin":
+        return jsonify({"message": "Access denied. Admin only."}), 403
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, company_name, address, city, category, opening_date
+        FROM companies
+        ORDER BY opening_date DESC
+    """)
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    companies = [{"id": r[0], "company_name": r[1], "address": r[2], "city": r[3], "category": r[4], "opening_date": str(r[5])} for r in rows]
+    return jsonify({"companies": companies}), 200
+
+
+# ------------------ ADMIN: FIND USERS ------------------
+
+@app.route("/find-users", methods=["GET"])
+@login_required
+def find_users():
+    if current_user.role != "admin":
+        return jsonify({"message": "Access denied. Admin only."}), 403
+
+    city = request.args.get("city", "").strip()
+    category = request.args.get("category", "").strip()
+
+    if not city or not category:
+        return jsonify({"message": "city and category are required"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT user_email, city, category, is_paused
+        FROM subscriptions
+        WHERE TRIM(LOWER(city)) = TRIM(LOWER(%s))
+          AND TRIM(LOWER(category)) = TRIM(LOWER(%s))
+          AND is_paused = FALSE
+    """, (city, category))
+
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    users = [{"email": r[0], "city": r[1], "category": r[2], "is_paused": r[3]} for r in rows]
+    return jsonify({"users": users}), 200
+
+
+# ------------------ ADMIN: DELETE COMPANY ------------------
+
+@app.route("/delete-company", methods=["POST"])
+@login_required
+def delete_company():
+    if current_user.role != "admin":
+        return jsonify({"message": "Access denied. Admin only."}), 403
+
+    data = request.json
+    company_name = data.get("company_name", "").strip()
+    city = data.get("city", "").strip()
+
+    if not company_name or not city:
+        return jsonify({"message": "company_name and city are required"}), 400
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM companies
+        WHERE TRIM(LOWER(company_name))=TRIM(LOWER(%s))
+          AND TRIM(LOWER(city))=TRIM(LOWER(%s))
+    """, (company_name, city))
+    conn.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    conn.close()
+
+    if rows_affected == 0:
+        return jsonify({"message": "Company not found"}), 404
+
+    return jsonify({"message": "Company deleted successfully"}), 200
 
 
 # ------------------ ADMIN: ADD COMPANY + EMAIL ------------------
@@ -435,4 +616,4 @@ Company Alert System
     
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

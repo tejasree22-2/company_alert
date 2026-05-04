@@ -58,6 +58,112 @@ def get_subscriptions():
     
     
 # -------------------------------
+# 🔹 FILTER COMPANIES (ADMIN)
+# -------------------------------
+@mcp.tool()
+def filter_companies(city: str, category: str):
+    """
+    Filter companies by city and category (admin only)
+    """
+    try:
+        response = session.get(
+            f"{BASE_URL}/filter-companies",
+            params={"city": city, "category": category}
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to filter companies")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
+# 🔹 GET ALL USERS (ADMIN)
+# -------------------------------
+@mcp.tool()
+def get_all_users():
+    """
+    Get all registered users (admin only)
+    """
+    try:
+        response = session.get(f"{BASE_URL}/get-all-users")
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to fetch users")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
+# 🔹 GET ALL COMPANIES (ADMIN)
+# -------------------------------
+@mcp.tool()
+def get_all_companies():
+    """
+    Get all companies (admin only)
+    """
+    try:
+        response = session.get(f"{BASE_URL}/get-all-companies")
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to fetch companies")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
+# 🔹 GET ALL SUBSCRIPTIONS (ADMIN)
+# -------------------------------
+@mcp.tool()
+def get_all_subscriptions():
+    """
+    Get all subscriptions (admin only)
+    """
+    try:
+        response = session.get(f"{BASE_URL}/get-all-subscriptions")
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to fetch subscriptions")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
+# 🔹 DELETE COMPANY (ADMIN)
+# -------------------------------
+@mcp.tool()
+def delete_company(company_name: str, city: str):
+    """
+    Delete a company by name and city (admin only)
+    """
+    try:
+        response = session.post(
+            f"{BASE_URL}/delete-company",
+            json={"company_name": company_name, "city": city}
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to delete company")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
 # 🔹 ADD COMPANY (ADMIN)
 # -------------------------------
 @mcp.tool()
@@ -92,6 +198,75 @@ def add_company(company_name: str, city: str, category: str):
     
     
 # -------------------------------
+# 🔹 SUBSCRIBE (USER)
+# -------------------------------
+@mcp.tool()
+def subscribe(city: str, category: str):
+    """
+    Subscribe the logged-in user to a city and category
+    """
+    try:
+        response = session.post(
+            f"{BASE_URL}/subscribe",
+            json={"city": city, "category": category}
+        )
+
+        if response.status_code == 201:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to subscribe")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
+# 🔹 UNSUBSCRIBE (USER)
+# -------------------------------
+@mcp.tool()
+def unsubscribe(city: str, category: str):
+    """
+    Unsubscribe the logged-in user from a city and category
+    """
+    try:
+        response = session.post(
+            f"{BASE_URL}/unsubscribe",
+            json={"city": city, "category": category}
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to unsubscribe")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
+# 🔹 PAUSE / UNPAUSE SUBSCRIPTION (USER)
+# -------------------------------
+@mcp.tool()
+def pause_subscription(city: str, category: str, pause: bool):
+    """
+    Pause or unpause a subscription by city and category. Set pause=true to pause, pause=false to unpause.
+    """
+    try:
+        response = session.post(
+            f"{BASE_URL}/pause-subscription",
+            json={"city": city, "category": category, "pause": pause}
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to update subscription")}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# -------------------------------
 # 🔹 FIND USERS (FILTER LOGIC)
 # -------------------------------
 @mcp.tool()
@@ -100,26 +275,18 @@ def find_users(city: str, category: str):
     Find users by city & category
     """
     try:
-        response = session.get(f"{BASE_URL}/get-subscriptions")
-    
-        if response.status_code != 200:
-            return {"error": "Not authenticated or failed request"}
-    
-        data = response.json()
-    
-        result = []
-        for d in data.get("subscriptions", []):
-            if (
-                d["city"].lower() == city.lower()
-                and d["category"].lower() == category.lower()
-                and d["is_paused"] == False
-            ):
-                result.append(d)
-    
-        return {"users": result}
-    
+        response = session.get(
+            f"{BASE_URL}/find-users",
+            params={"city": city, "category": category}
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"error": response.json().get("message", "Failed to fetch users")}
+
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e)}   
     
     
 # -------------------------------
